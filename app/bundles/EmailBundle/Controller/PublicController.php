@@ -162,11 +162,12 @@ class PublicController extends CommonFormController
             $template = $formTemplate;
         }
 
-        $theme = $this->factory->getTheme($template);
+        $theme = $this->container->get('mautic.helper.theme')->getTheme($template);
         if ($theme->getTheme() != $template) {
             $template = $theme->getTheme();
         }
-        $contentTemplate = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':message.html.php');
+        $contentTemplate = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':'.$template.':message.html.php');
+
         if (!empty($stat)) {
             $successSessionName = 'mautic.email.prefscenter.success';
 
@@ -304,7 +305,7 @@ class PublicController extends CommonFormController
         if (!empty($formContent)) {
             $viewParams['content'] = $formContent;
             if (in_array('form', $config['features'])) {
-                $contentTemplate = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':form.html.php');
+                $contentTemplate = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':'.$template.':form.html.php');
             } else {
                 $contentTemplate = 'MauticFormBundle::form.html.php';
             }
@@ -373,25 +374,25 @@ class PublicController extends CommonFormController
 
         $template = (null !== $email && 'mautic_code_mode' !== $email->getTemplate()) ? $email->getTemplate() : $this->coreParametersHelper->get('theme');
 
-        $theme = $this->factory->getTheme($template);
+        $theme = $this->container->get('mautic.helper.theme')->getTheme($template);
 
         if ($theme->getTheme() != $template) {
             $template = $theme->getTheme();
         }
 
         // Ensure template still exists
-        $theme = $this->factory->getTheme($template);
+        $theme = $this->container->get('mautic.helper.theme')->getTheme($template);
         if (empty($theme) || $theme->getTheme() !== $template) {
             $template = $this->coreParametersHelper->get('theme');
         }
 
-        $analytics = $this->factory->getHelper('template.analytics')->getCode();
+        $analytics = $this->container->get('mautic.helper.template.analytics')->getCode();
 
         if (!empty($analytics)) {
-            $this->factory->getHelper('template.assets')->addCustomDeclaration($analytics);
+            $this->container->get('templating.helper.assets')->addCustomDeclaration($analytics);
         }
 
-        $logicalName = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':message.html.php');
+        $logicalName = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':theme:message.html.php');
 
         return $this->render(
             $logicalName,
@@ -464,15 +465,15 @@ class PublicController extends CommonFormController
         $content   = $emailEntity->getCustomHtml();
         if (empty($content) && !empty($BCcontent)) {
             $template = $emailEntity->getTemplate();
-            $slots    = $this->factory->getTheme($template)->getSlots('email');
+            $slots    = $this->container->get('mautic.helper.theme')->getTheme($template)->getSlots('email');
 
-            $assetsHelper = $this->factory->getHelper('template.assets');
+            $assetsHelper = $this->container->get('templating.helper.assets');
 
             $assetsHelper->addCustomDeclaration('<meta name="robots" content="noindex">');
 
             $this->processSlots($slots, $emailEntity);
 
-            $logicalName = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':email.html.php');
+            $logicalName = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':'.$template.':email.html.php');
 
             $response = $this->render(
                 $logicalName,
@@ -538,7 +539,7 @@ class PublicController extends CommonFormController
     public function processSlots($slots, $entity)
     {
         /** @var \Mautic\CoreBundle\Templating\Helper\SlotsHelper $slotsHelper */
-        $slotsHelper = $this->factory->getHelper('template.slots');
+        $slotsHelper = $this->container->get('templating.helper.slots');
 
         $content = $entity->getContent();
 

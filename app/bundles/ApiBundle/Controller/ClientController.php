@@ -41,7 +41,8 @@ class ClientController extends FormController
         $orderBy    = $this->get('session')->get('mautic.client.orderby', 'c.name');
         $orderByDir = $this->get('session')->get('mautic.client.orderbydir', 'ASC');
         $filter     = $this->request->get('search', $this->get('session')->get('mautic.client.filter', ''));
-        $apiMode    = $this->factory->getRequest()->get('api_mode', $this->get('session')->get('mautic.client.filter.api_mode', 'oauth1a'));
+        $request    = $this->container->get('request_stack')->getCurrentRequest();
+        $apiMode    = $request->get('api_mode', $this->get('session')->get('mautic.client.filter.api_mode', 'oauth1a'));
         $this->get('session')->set('mautic.client.filter.api_mode', $apiMode);
         $this->get('session')->set('mautic.client.filter', $filter);
         $tmpl = $this->request->isXmlHttpRequest() ? $this->request->get('tmpl', 'index') : 'index';

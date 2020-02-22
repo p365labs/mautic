@@ -23,7 +23,6 @@ use Mautic\CampaignBundle\EventCollector\Accessor\Event\AbstractEventAccessor;
 use Mautic\CampaignBundle\Executioner\Dispatcher\LegacyEventDispatcher;
 use Mautic\CampaignBundle\Executioner\Helper\NotificationHelper;
 use Mautic\CampaignBundle\Executioner\Scheduler\EventScheduler;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\LeadModel;
 use PHPUnit\Framework\MockObject\MockBuilder;
@@ -52,11 +51,6 @@ class LegacyEventDispatcherTest extends \PHPUnit\Framework\TestCase
      */
     private $notificationHelper;
 
-    /**
-     * @var MockBuilder|MauticFactory
-     */
-    private $mauticFactory;
-
     protected function setUp()
     {
         $this->dispatcher = $this->getMockBuilder(EventDispatcherInterface::class)
@@ -72,10 +66,6 @@ class LegacyEventDispatcherTest extends \PHPUnit\Framework\TestCase
             ->getMock();
 
         $this->notificationHelper = $this->getMockBuilder(NotificationHelper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->mauticFactory = $this->getMockBuilder(MauticFactory::class)
             ->disableOriginalConstructor()
             ->getMock();
     }
@@ -101,7 +91,7 @@ class LegacyEventDispatcherTest extends \PHPUnit\Framework\TestCase
         $this->leadModel->expects($this->never())
             ->method('setSystemCurrentLead');
 
-        $this->getLegacyEventDispatcher()->dispatchCustomEvent($config, $logs, false, $pendingEvent, $this->mauticFactory);
+        $this->getLegacyEventDispatcher()->dispatchCustomEvent($config, $logs, false, $pendingEvent);
     }
 
     public function testPrimayLegacyEventsAreProcessed()
@@ -470,8 +460,7 @@ class LegacyEventDispatcherTest extends \PHPUnit\Framework\TestCase
             $this->scheduler,
             new NullLogger(),
             $this->leadModel,
-            $this->notificationHelper,
-            $this->mauticFactory
+            $this->notificationHelper
         );
     }
 

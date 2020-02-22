@@ -15,6 +15,7 @@ use Mautic\CampaignBundle\Entity\Event;
 use Mautic\CampaignBundle\EventCollector\EventCollector;
 use Mautic\CampaignBundle\Form\Type\EventType;
 use Mautic\CoreBundle\Controller\FormController as CommonFormController;
+use Mautic\CoreBundle\Helper\DateTimeHelper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class EventController extends CommonFormController
@@ -42,7 +43,8 @@ class EventController extends CommonFormController
             $eventType            = $event['eventType'];
             $campaignId           = $event['campaignId'];
             $anchorName           = $event['anchor'];
-            $event['triggerDate'] = (!empty($event['triggerDate'])) ? $this->factory->getDate($event['triggerDate'])->getDateTime() : null;
+            $triggerDate          = new DateTimeHelper($event['triggerDate']);
+            $event['triggerDate'] = (!empty($event['triggerDate'])) ? $triggerDate->getDateTime() : null;
         } else {
             $type       = $this->request->query->get('type');
             $eventType  = $this->request->query->get('eventType');
@@ -183,7 +185,7 @@ class EventController extends CommonFormController
                 );
             } elseif ('date' == $event['triggerMode']) {
                 /** @var \Mautic\CoreBundle\Templating\Helper\DateHelper $dh */
-                $dh    = $this->factory->getHelper('template.date');
+                $dh    = $this->container->get('mautic.helper.template.date');
                 $label = 'mautic.campaign.connection.trigger.date.label';
                 if ('no' == $anchorName) {
                     $label .= '_inaction';

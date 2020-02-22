@@ -160,7 +160,7 @@ class AjaxController extends CommonAjaxController
             }
 
             /** @var \Mautic\EmailBundle\MonitoredEmail\Mailbox $helper */
-            $helper = $this->factory->getHelper('mailbox');
+            $helper = $this->container->get('mautic.helper.mailbox');
 
             try {
                 $helper->setMailboxSettings($settings, false);
@@ -211,10 +211,6 @@ class AjaxController extends CommonAjaxController
                             $mailer->setHost($settings['amazon_region']);
                         }
                     }
-            }
-
-            if (method_exists($mailer, 'setMauticFactory')) {
-                $mailer->setMauticFactory($this->factory);
             }
 
             if (!empty($mailer)) {

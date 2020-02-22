@@ -71,7 +71,8 @@ class SecurityController extends CommonController
             }
 
             /** @var \Mautic\CoreBundle\Helper\CookieHelper $cookieHelper */
-            $cookieHelper = $this->factory->getHelper('cookie');
+            $cookieHelper = $this->container->get('mautic.helper.cookie');
+
             $cookieHelper->deleteCookie('mautic_update');
         }
 

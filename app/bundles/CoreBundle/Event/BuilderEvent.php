@@ -162,7 +162,6 @@ class BuilderEvent extends Event
      *                         The callback function can receive the following arguments by name (via ReflectionMethod::invokeArgs())
      *                         array $properties - values saved from the formType as defined here; keyed by page or email id in the case of
      *                         multiple variants
-     *                         Mautic\CoreBundle\Factory\MauticFactory $factory
      *                         Mautic\PageBundle\Entity\Page $page | Mautic\EmailBundle\Entity\Email $email (depending on the context)
      *                         Mautic\PageBundle\Entity\Page|Mautic\EmailBundle\Entity\Email $parent
      *                         Doctrine\Common\Collections\ArrayCollection $children

@@ -48,7 +48,7 @@ class CompanyController extends FormController
         //set limits
         $limit = $this->get('session')->get(
             'mautic.company.limit',
-            $this->factory->getParameter('default_pagelimit')
+            $this->container->get('mautic.helper.core_parameters')->get('default_pagelimit')
         );
         $start = (1 === $page) ? 0 : (($page - 1) * $limit);
         if ($start < 0) {

@@ -171,7 +171,7 @@ class AjaxController extends CommonAjaxController
             if (null !== $lead && $this->get('mautic.security')->hasEntityAccess('lead:leads:editown', 'lead:leads:editown', $lead->getPermissionUser())) {
                 $leadFields = $lead->getFields();
                 /** @var IntegrationHelper $integrationHelper */
-                $integrationHelper = $this->factory->getHelper('integration');
+                $integrationHelper = $this->container->get('mautic.helper.integration');
                 $socialProfiles    = $integrationHelper->getUserProfiles($lead, $leadFields, true, $network);
                 $socialProfileUrls = $integrationHelper->getSocialProfileUrlRegex(false);
                 $integrations      = [];
@@ -231,7 +231,7 @@ class AjaxController extends CommonAjaxController
             if (null !== $lead && $this->get('mautic.security')->hasEntityAccess('lead:leads:editown', 'lead:leads:editown', $lead->getPermissionUser())) {
                 $dataArray['success'] = 1;
                 /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $helper */
-                $helper         = $this->factory->getHelper('integration');
+                $helper         = $this->container->get('mautic.helper.integration');
                 $socialProfiles = $helper->clearIntegrationCache($lead, $network);
                 $socialCount    = count($socialProfiles);
 
@@ -542,7 +542,7 @@ class AjaxController extends CommonAjaxController
                 $emailRepo          = $this->getModel('email')->getRepository();
                 $indexMode          = $this->request->get('view', $session->get('mautic.lead.indexmode', 'list'));
                 $template           = ('list' == $indexMode) ? 'list_rows' : 'grid_cards';
-                $dataArray['leads'] = $this->factory->getTemplating()->render(
+                $dataArray['leads'] = $this->container->get('mautic.helper.templating')->getTemplating()->render(
                     "MauticLeadBundle:Lead:{$template}.html.php",
                     [
                         'items'         => $results['results'],
@@ -582,7 +582,7 @@ class AjaxController extends CommonAjaxController
                 $email->getCreatedBy()
             )
         ) {
-            $mailer = $this->factory->getMailer();
+            $mailer = $this->container->get('mautic.helper.mailer')->getMailer();
             $mailer->setEmail($email, true, [], [], true);
 
             $data['body']    = $mailer->getBody();

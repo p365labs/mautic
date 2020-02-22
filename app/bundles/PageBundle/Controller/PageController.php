@@ -452,7 +452,7 @@ class PageController extends FormController
                 'isVariant'     => $entity->isVariant(true),
                 'tokens'        => $model->getBuilderComponents($entity, 'tokens'),
                 'activePage'    => $entity,
-                'themes'        => $this->factory->getInstalledThemes('page', true),
+                'themes'        => $this->container->get('mautic.helper.theme')->getInstalledThemes('page', true),
                 'slots'         => $this->buildSlotForms($slotTypes),
                 'sections'      => $this->buildSlotForms($sections),
                 'builderAssets' => trim(preg_replace('/\s+/', ' ', $this->getAssetsForBuilder())), // strip new lines
@@ -602,7 +602,7 @@ class PageController extends FormController
                 'isVariant'     => $entity->isVariant(true),
                 'tokens'        => $model->getBuilderComponents($entity, 'tokens'),
                 'activePage'    => $entity,
-                'themes'        => $this->factory->getInstalledThemes('page', true),
+                'themes'        => $this->container->get('mautic.helper.theme')->getInstalledThemes('page', true),
                 'slots'         => $this->buildSlotForms($slotTypes),
                 'sections'      => $this->buildSlotForms($sections),
                 'builderAssets' => trim(preg_replace('/\s+/', ' ', $this->getAssetsForBuilder())), // strip new lines
@@ -832,7 +832,7 @@ class PageController extends FormController
         }
 
         $template = InputHelper::clean($this->request->query->get('template'));
-        $slots    = $this->factory->getTheme($template)->getSlots('page');
+        $slots    = $this->container->get('mautic.helper.theme')->getTheme($template)->getSlots('page');
 
         //merge any existing changes
         $newContent = $this->get('session')->get('mautic.pagebuilder.'.$objectId.'.content', []);
@@ -846,7 +846,7 @@ class PageController extends FormController
 
         $this->processSlots($slots, $entity);
 
-        $logicalName = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':page.html.php');
+        $logicalName = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':'.$template.':page.html.php');
 
         return $this->render($logicalName, [
             'isNew'       => $isNew,

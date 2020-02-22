@@ -23,7 +23,6 @@ use Mautic\ApiBundle\Serializer\Exclusion\PublishDetailsExclusionStrategy;
 use Mautic\CategoryBundle\Entity\Category;
 use Mautic\CoreBundle\Controller\FormErrorMessagesTrait;
 use Mautic\CoreBundle\Controller\MauticController;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Form\RequestTrait;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
@@ -102,11 +101,6 @@ class CommonApiController extends FOSRestController implements MauticController
      * @var array
      */
     protected $extraGetEntitiesArguments = [];
-
-    /**
-     * @var MauticFactory
-     */
-    protected $factory;
 
     /**
      * @var bool
@@ -644,11 +638,6 @@ class CommonApiController extends FOSRestController implements MauticController
     public function setDispatcher(EventDispatcherInterface $dispatcher)
     {
         $this->dispatcher = $dispatcher;
-    }
-
-    public function setFactory(MauticFactory $factory)
-    {
-        $this->factory = $factory;
     }
 
     public function setRequest(Request $request)

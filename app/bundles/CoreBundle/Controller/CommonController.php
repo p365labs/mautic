@@ -16,7 +16,6 @@ use Exporter\Source\ArraySourceIterator;
 use Exporter\Source\IteratorSourceIterator;
 use Exporter\Writer\CsvWriter;
 use Exporter\Writer\XlsWriter;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\DataExporterHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
@@ -43,11 +42,6 @@ use Symfony\Component\Translation\TranslatorInterface;
 class CommonController extends Controller implements MauticController
 {
     use FormThemeTrait;
-
-    /**
-     * @var MauticFactory
-     */
-    protected $factory;
 
     /**
      * @var \Symfony\Component\HttpFoundation\Request
@@ -77,11 +71,6 @@ class CommonController extends Controller implements MauticController
     public function setRequest(Request $request)
     {
         $this->request = $request;
-    }
-
-    public function setFactory(MauticFactory $factory)
-    {
-        $this->factory = $factory;
     }
 
     public function setUser(User $user)
@@ -706,7 +695,7 @@ class CommonController extends Controller implements MauticController
         }
 
         if (0 !== strpos($icon, 'http')) {
-            $assetHelper = $this->factory->getHelper('template.assets');
+            $assetHelper = $this->container->get('templating.helper.assets');
             $icon        = $assetHelper->getUrl($icon, null, null, true);
         }
 

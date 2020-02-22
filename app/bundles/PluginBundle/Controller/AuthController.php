@@ -33,7 +33,7 @@ class AuthController extends FormController
         $session = $this->get('session');
 
         /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $integrationHelper */
-        $integrationHelper = $this->factory->getHelper('integration');
+        $integrationHelper = $this->container->get('mautic.helper.integration');
         $integrationObject = $integrationHelper->getIntegrationObject($integration);
 
         //check to see if the service exists
@@ -119,7 +119,7 @@ class AuthController extends FormController
     public function authUserAction($integration)
     {
         /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $integrationHelper */
-        $integrationHelper = $this->factory->getHelper('integration');
+        $integrationHelper = $this->container->get('mautic.helper.integration');
         $integrationObject = $integrationHelper->getIntegrationObject($integration);
 
         $settings['method']      = 'GET';

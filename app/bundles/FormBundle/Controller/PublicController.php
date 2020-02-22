@@ -261,13 +261,13 @@ class PublicController extends CommonFormController
         $msg     = (!empty($message['message'])) ? $message['message'] : '';
         $msgType = (!empty($message['type'])) ? $message['type'] : 'notice';
 
-        $analytics = $this->factory->getHelper('template.analytics')->getCode();
+        $analytics = $this->container->get('mautic.helper.template.analytics')->getCode();
 
         if (!empty($analytics)) {
-            $this->factory->getHelper('template.assets')->addCustomDeclaration($analytics);
+            $this->container->get('templating.helper.assets')->addCustomDeclaration($analytics);
         }
 
-        $logicalName = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$this->coreParametersHelper->get('theme').':message.html.php');
+        $logicalName = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':'.$this->coreParametersHelper->get('theme').':message.html.php');
 
         return $this->render($logicalName, [
             'message'  => $msg,
@@ -316,7 +316,7 @@ class PublicController extends CommonFormController
 
             $template = $form->getTemplate();
             if (!empty($template)) {
-                $theme = $this->factory->getTheme($template);
+                $theme = $this->container->get('mautic.helper.theme')->getTheme($template);
                 if ($theme->getTheme() != $template) {
                     $config = $theme->getConfig();
                     if (in_array('form', $config['features'])) {
@@ -331,9 +331,9 @@ class PublicController extends CommonFormController
         $viewParams['template'] = $template;
 
         if (!empty($template)) {
-            $logicalName  = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':form.html.php');
-            $assetsHelper = $this->factory->getHelper('template.assets');
-            $analytics    = $this->factory->getHelper('template.analytics')->getCode();
+            $logicalName  = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':'.$template.':form.html.php');
+            $assetsHelper = $this->container->get('templating.helper.assets');
+            $analytics    = $this->container->get('mautic.helper.analytics')->getCode();
 
             if (!empty($customStylesheets)) {
                 foreach ($customStylesheets as $css) {
@@ -341,7 +341,7 @@ class PublicController extends CommonFormController
                 }
             }
 
-            $this->factory->getHelper('template.slots')->set('pageTitle', $form->getName());
+            $this->container->get('templating.helper.slots')->set('pageTitle', $form->getName());
 
             if (!empty($analytics)) {
                 $assetsHelper->addCustomDeclaration($analytics);

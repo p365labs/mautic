@@ -29,7 +29,7 @@ class JsController extends CommonController
         defined('MAUTIC_NON_TRACKABLE_REQUEST') || define('MAUTIC_NON_TRACKABLE_REQUEST', 1);
 
         $dispatcher = $this->dispatcher;
-        $debug      = $this->factory->getKernel()->isDebug();
+        $debug      = $this->container->get('kernel')->isDebug();
         $event      = new BuildJsEvent($this->getJsHeader(), $debug);
 
         if ($dispatcher->hasListeners(CoreEvents::BUILD_MAUTIC_JS)) {

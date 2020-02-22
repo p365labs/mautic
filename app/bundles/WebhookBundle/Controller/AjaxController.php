@@ -106,12 +106,12 @@ class AjaxController extends CommonAjaxController
             $eventName = implode('_', $typePath);
 
             // default the path to core
-            $payloadPath = $this->factory->getSystemPath('bundles', true);
+            $payloadPath = $this->container->get('mautic.helper.paths')->getSystemPath('bundles', true);
 
             // if plugin is in first part of the string this is an addon
             // input is plugin.bundlename or mautic.bundlename
             if (strpos('plugin.', $prefix)) {
-                $payloadPath = $this->factory->getSystemPath('plugins', true);
+                $payloadPath = $this->container->get('mautic.helper.paths')->getSystemPath('plugins', true);
             }
 
             $prefixParts = explode('.', $prefix);

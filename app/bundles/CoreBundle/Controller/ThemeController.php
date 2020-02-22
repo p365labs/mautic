@@ -40,7 +40,7 @@ class ThemeController extends FormController
         }
 
         $themeHelper = $this->container->get('mautic.helper.theme');
-        $dir         = $this->factory->getSystemPath('themes', true);
+        $dir         = $this->container->get('mautic.helper.paths')->getSystemPath('themes', true);
         $action      = $this->generateUrl('mautic_themes_index');
         $form        = $this->get('form.factory')->create(ThemeUploadType::class, [], ['action' => $action]);
 

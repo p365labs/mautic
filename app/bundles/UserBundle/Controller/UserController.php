@@ -489,7 +489,7 @@ class UserController extends FormController
                         'objectId'  => $entityId,
                         'action'    => 'communication',
                         'details'   => $details,
-                        'ipAddress' => $this->factory->getIpAddressFromRequest(),
+                        'ipAddress' => $this->container->get('mautic.helper.ip_lookup')->getIpAddressFromRequest(),
                     ];
                     $this->getModel('core.auditlog')->writeToLog($log);
 

@@ -237,17 +237,17 @@ class PublicController extends CommonFormController
                  */
                 $template = $entity->getTemplate();
                 //all the checks pass so display the content
-                $slots   = $this->factory->getTheme($template)->getSlots('page');
+                $slots   = $this->container->get('mautic.helper.theme')->getTheme($template)->getSlots('page');
                 $content = $entity->getContent();
 
                 $this->processSlots($slots, $entity);
 
                 // Add the GA code to the template assets
                 if (!empty($analytics)) {
-                    $this->factory->getHelper('template.assets')->addCustomDeclaration($analytics);
+                    $this->container->get('templating.helper.assets')->addCustomDeclaration($analytics);
                 }
 
-                $logicalName = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':page.html.php');
+                $logicalName = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':'.$template.':page.html.php');
 
                 $response = $this->render(
                     $logicalName,
@@ -308,24 +308,24 @@ class PublicController extends CommonFormController
             return $this->notFound();
         }
 
-        $analytics = $this->factory->getHelper('template.analytics')->getCode();
+        $analytics = $this->container->get('mautic.helper.template.analytics')->getCode();
 
         $BCcontent = $entity->getContent();
         $content   = $entity->getCustomHtml();
         if (empty($content) && !empty($BCcontent)) {
             $template = $entity->getTemplate();
             //all the checks pass so display the content
-            $slots   = $this->factory->getTheme($template)->getSlots('page');
+            $slots   = $this->container->get('mautic.helper.theme')->getTheme($template)->getSlots('page');
             $content = $entity->getContent();
 
             $this->processSlots($slots, $entity);
 
             // Add the GA code to the template assets
             if (!empty($analytics)) {
-                $this->factory->getHelper('template.assets')->addCustomDeclaration($analytics);
+                $this->container->get('templating.helper.assets')->addCustomDeclaration($analytics);
             }
 
-            $logicalName = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':page.html.php');
+            $logicalName = $this->container->get('mautic.helper.theme')->checkForTwigTemplate(':'.$template.':page.html.php');
 
             $response = $this->render(
                 $logicalName,
@@ -494,9 +494,9 @@ class PublicController extends CommonFormController
     private function processSlots($slots, $entity)
     {
         /** @var \Mautic\CoreBundle\Templating\Helper\AssetsHelper $assetsHelper */
-        $assetsHelper = $this->factory->getHelper('template.assets');
+        $assetsHelper = $this->container->get('templating.helper.assets');
         /** @var \Mautic\CoreBundle\Templating\Helper\SlotsHelper $slotsHelper */
-        $slotsHelper = $this->factory->getHelper('template.slots');
+        $slotsHelper = $this->container->get('templating.helper.slots');
 
         $content = $entity->getContent();
 

@@ -367,7 +367,7 @@ class AjaxController extends CommonController
         $package = $updateHelper->fetchPackage($update['package']);
 
         /** @var \Mautic\CoreBundle\Helper\CookieHelper $cookieHelper */
-        $cookieHelper = $this->factory->getHelper('cookie');
+        $cookieHelper = $this->container->get('mautic.helper.cookie');
 
         if ($package['error']) {
             $dataArray['stepStatus'] = $translator->trans('mautic.core.update.step.failed');
@@ -408,7 +408,7 @@ class AjaxController extends CommonController
 
         // Fetch the package data
         $update  = $updateHelper->fetchData();
-        $zipFile = $this->factory->getSystemPath('cache').'/'.basename($update['package']);
+        $zipFile = $this->container->get('mautic.helper.paths')->getSystemPath('cache').'/'.basename($update['package']);
 
         $zipper  = new \ZipArchive();
         $archive = $zipper->open($zipFile);
@@ -613,7 +613,7 @@ class AjaxController extends CommonController
 
         // Here as a just in case it's needed for a future upgrade
         $dataArray['success'] = 1;
-        $dataArray['message'] = $translator->trans('mautic.core.update.update_successful', ['%version%' => $this->factory->getVersion()]);
+        $dataArray['message'] = $translator->trans('mautic.core.update.update_successful', ['%version%' => $this->container->get('kernel')->getVersion()]);
 
         // Check for a post install message
         if ($postMessage = $this->container->get('session')->get('post_upgrade_message', false)) {

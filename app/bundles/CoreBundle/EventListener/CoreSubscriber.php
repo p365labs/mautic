@@ -16,7 +16,6 @@ use Mautic\CoreBundle\CoreEvents;
 use Mautic\CoreBundle\Event\IconEvent;
 use Mautic\CoreBundle\Event\MenuEvent;
 use Mautic\CoreBundle\Event\RouteEvent;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Helper\BundleHelper;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\UserHelper;
@@ -97,11 +96,6 @@ class CoreSubscriber implements EventSubscriberInterface
      */
     private $formRepository;
 
-    /**
-     * @var MauticFactory
-     */
-    private $factory;
-
     public function __construct(
         BundleHelper $bundleHelper,
         MenuHelper $menuHelper,
@@ -113,8 +107,7 @@ class CoreSubscriber implements EventSubscriberInterface
         EventDispatcherInterface $dispatcher,
         TranslatorInterface $translator,
         RequestStack $requestStack,
-        FormRepository $formRepository,
-        MauticFactory $factory
+        FormRepository $formRepository
     ) {
         $this->bundleHelper         = $bundleHelper;
         $this->menuHelper           = $menuHelper;
@@ -127,7 +120,6 @@ class CoreSubscriber implements EventSubscriberInterface
         $this->translator           = $translator;
         $this->requestStack         = $requestStack;
         $this->formRepository       = $formRepository;
-        $this->factory              = $factory;
     }
 
     /**
@@ -227,10 +219,6 @@ class CoreSubscriber implements EventSubscriberInterface
 
             //also set the request for easy access throughout controllers
             $controller[0]->setRequest($request);
-
-            // set the factory for easy use access throughout the controllers
-            // @deprecated To be removed in 3.0
-            $controller[0]->setFactory($this->factory);
 
             // set the user as well
             $controller[0]->setUser($this->userHelper->getUser());

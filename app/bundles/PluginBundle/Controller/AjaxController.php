@@ -139,7 +139,7 @@ class AjaxController extends CommonAjaxController
 
         if (!empty($integration) && !empty($settings)) {
             /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $helper */
-            $helper = $this->factory->getHelper('integration');
+            $helper = $this->container->get('mautic.helper.integration');
             /** @var \Mautic\PluginBundle\Integration\AbstractIntegration $object */
             $object = $helper->getIntegrationObject($integration);
 
@@ -197,7 +197,7 @@ class AjaxController extends CommonAjaxController
         $statusData  = [];
         if (!empty($integration) && !empty($campaign)) {
             /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $helper */
-            $helper = $this->factory->getHelper('integration');
+            $helper = $this->container->get('mautic.helper.integration');
             /** @var \Mautic\PluginBundle\Integration\AbstractIntegration $object */
             $object = $helper->getIntegrationObject($integration);
 
@@ -255,7 +255,7 @@ class AjaxController extends CommonAjaxController
 
         if (!empty($integration)) {
             /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $helper */
-            $helper = $this->factory->getHelper('integration');
+            $helper = $this->container->get('mautic.helper.integration');
             /** @var \Mautic\PluginBundle\Integration\AbstractIntegration $object */
             $object = $helper->getIntegrationObject($integration);
             $data   = [];
@@ -299,7 +299,8 @@ class AjaxController extends CommonAjaxController
         $update_mautic     = $request->request->get('updateMautic');
         $object            = $request->request->get('object');
 
-        $helper             = $this->factory->getHelper('integration');
+        $helper             = $this->container->get('mautic.helper.integration');
+
         $integration_object = $helper->getIntegrationObject($integration);
         $entity             = $integration_object->getIntegrationSettings();
         $featureSettings    = $entity->getFeatureSettings();

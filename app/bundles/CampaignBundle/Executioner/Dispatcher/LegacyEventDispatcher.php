@@ -13,7 +13,6 @@ namespace Mautic\CampaignBundle\Executioner\Dispatcher;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Mautic\CampaignBundle\CampaignEvents;
-use Mautic\CampaignBundle\Entity\Event;
 use Mautic\CampaignBundle\Entity\LeadEventLog;
 use Mautic\CampaignBundle\Event\CampaignDecisionEvent;
 use Mautic\CampaignBundle\Event\CampaignExecutionEvent;
@@ -26,7 +25,6 @@ use Mautic\CampaignBundle\Event\PendingEvent;
 use Mautic\CampaignBundle\EventCollector\Accessor\Event\AbstractEventAccessor;
 use Mautic\CampaignBundle\Executioner\Helper\NotificationHelper;
 use Mautic\CampaignBundle\Executioner\Scheduler\EventScheduler;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\LeadBundle\Model\LeadModel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -66,11 +64,6 @@ class LegacyEventDispatcher
     private $notificationHelper;
 
     /**
-     * @var MauticFactory
-     */
-    private $factory;
-
-    /**
      * LegacyEventDispatcher constructor.
      */
     public function __construct(
@@ -78,15 +71,13 @@ class LegacyEventDispatcher
         EventScheduler $scheduler,
         LoggerInterface $logger,
         LeadModel $leadModel,
-        NotificationHelper $notificationHelper,
-        MauticFactory $factory
+        NotificationHelper $notificationHelper
     ) {
         $this->dispatcher         = $dispatcher;
         $this->scheduler          = $scheduler;
         $this->logger             = $logger;
         $this->leadModel          = $leadModel;
         $this->notificationHelper = $notificationHelper;
-        $this->factory            = $factory;
     }
 
     /**
@@ -245,7 +236,6 @@ class LegacyEventDispatcher
             'eventDetails'    => null, // @todo fix when procesing decisions,
             'event'           => $eventArray,
             'lead'            => $log->getLead(),
-            'factory'         => $this->factory,
             'systemTriggered' => $log->getSystemTriggered(),
             'config'          => $eventArray['properties'],
         ];

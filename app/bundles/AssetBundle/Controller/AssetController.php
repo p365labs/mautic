@@ -382,7 +382,7 @@ class AssetController extends FormController
 
         // Check for integrations to cloud providers
         /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $integrationHelper */
-        $integrationHelper = $this->factory->getHelper('integration');
+        $integrationHelper = $this->container->get('mautic.helper.integration');
 
         $integrations = $integrationHelper->getIntegrationObjects(null, ['cloud_storage']);
 
@@ -548,7 +548,7 @@ class AssetController extends FormController
 
         // Check for integrations to cloud providers
         /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $integrationHelper */
-        $integrationHelper = $this->factory->getHelper('integration');
+        $integrationHelper = $this->container->get('mautic.helper.integration');
 
         $integrations = $integrationHelper->getIntegrationObjects(null, ['cloud_storage']);
 
@@ -753,7 +753,7 @@ class AssetController extends FormController
     {
         // Check for integrations to cloud providers
         /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $integrationHelper */
-        $integrationHelper = $this->factory->getHelper('integration');
+        $integrationHelper = $this->container->get('mautic.helper.integration');
 
         $integrations = $integrationHelper->getIntegrationObjects(null, ['cloud_storage']);
 

@@ -52,7 +52,7 @@ class FieldController extends FormController
             $start = 0;
         }
 
-        $request = $this->factory->getRequest();
+        $request = $this->container->get('request_stack')->getCurrentRequest();
         $search  = $request->get('search', $session->get('mautic.lead.emailtoken.filter', ''));
 
         $session->set('mautic.lead.emailtoken.filter', $search);

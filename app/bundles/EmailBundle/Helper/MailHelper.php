@@ -11,19 +11,30 @@
 
 namespace Mautic\EmailBundle\Helper;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
 use Mautic\AssetBundle\Entity\Asset;
-use Mautic\CoreBundle\Factory\MauticFactory;
+use Mautic\CoreBundle\Factory\ModelFactory;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\EmojiHelper;
+use Mautic\CoreBundle\Helper\TemplatingHelper;
+use Mautic\CoreBundle\Helper\ThemeHelper;
+use Mautic\CoreBundle\Templating\Helper\SlotsHelper;
 use Mautic\EmailBundle\EmailEvents;
 use Mautic\EmailBundle\Entity\Email;
 use Mautic\EmailBundle\Entity\Stat;
 use Mautic\EmailBundle\Event\EmailSendEvent;
+use Mautic\EmailBundle\MonitoredEmail\Mailbox;
 use Mautic\EmailBundle\Swiftmailer\Exception\BatchQueueMaxException;
 use Mautic\EmailBundle\Swiftmailer\Message\MauticMessage;
 use Mautic\EmailBundle\Swiftmailer\Transport\TokenTransportInterface;
 use Mautic\LeadBundle\Entity\Lead;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 /**
  * Class MailHelper.
@@ -36,9 +47,9 @@ class MailHelper
     const QUEUE_NOTHING_IF_FAILED = 'IF_FAILED';
     const QUEUE_RETURN_ERRORS     = 'RETURN_ERRORS';
     /**
-     * @var MauticFactory
+     * @var ModelFactory
      */
-    protected $factory;
+    protected $modelFactory;
 
     /**
      * @var
@@ -249,14 +260,91 @@ class MailHelper
     private $copies = [];
 
     /**
+     * @var CoreParametersHelper
+     */
+    private $coreParamenterHelper;
+
+    /**
+     * @var ThemeHelper
+     */
+    private $themeHelper;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    private $em;
+
+    /**
+     * @var Mailbox
+     */
+    private $mailbox;
+
+    /**
+     * @var TemplatingHelper
+     */
+    private $templatingHelper;
+
+    /**
+     * @var \Swift_Transport
+     */
+    private $swiftTransport;
+
+    /**
+     * @var EventDispatcher
+     */
+    private $eventDispatcher;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $loggerMautic;
+
+    private $router;
+
+    /**
+     * @var SlotsHelper
+     */
+    private $slotHelper;
+
+    /**
+     * @var RequestStack
+     */
+    private $request;
+
+    /**
      * @param      $mailer
      * @param null $from
      */
-    public function __construct(MauticFactory $factory, \Swift_Mailer $mailer, $from = null)
-    {
-        $this->factory   = $factory;
-        $this->mailer    = $mailer;
-        $this->transport = $mailer->getTransport();
+    public function __construct(
+        ModelFactory $modelFactory,
+        \Swift_Mailer $mailer,
+        CoreParametersHelper $coreParamenterHelper,
+        ThemeHelper $themeHelper,
+        EntityManagerInterface $em,
+        Mailbox $mailbox,
+        TemplatingHelper $templatingHelper,
+        \Swift_Transport $swiftTransport,
+        EventDispatcher $eventDispatcher,
+        LoggerInterface $loggerMautic,
+        RouterInterface $router,
+        SlotsHelper $slotHelper,
+        RequestStack $requestStack,
+        $from = null
+    ) {
+        $this->modelFactory         = $modelFactory;
+        $this->coreParamenterHelper = $coreParamenterHelper;
+        $this->mailer               = $mailer;
+        $this->themeHelper          = $themeHelper;
+        $this->transport            = $mailer->getTransport();
+        $this->em                   = $em;
+        $this->mailbox              = $mailbox;
+        $this->templatingHelper     = $templatingHelper;
+        $this->swiftTransport       = $swiftTransport;
+        $this->eventDispatcher      = $eventDispatcher;
+        $this->loggerMautic         = $loggerMautic;
+        $this->router               = $router;
+        $this->slotHelper           = $slotHelper;
+        $this->request              = $requestStack;
 
         try {
             $this->logger = new \Swift_Plugins_Loggers_ArrayLogger();
@@ -265,22 +353,17 @@ class MailHelper
             $this->logError($e);
         }
 
-        $systemFromEmail  = $factory->getParameter('mailer_from_email');
+        $systemFromEmail  = $coreParamenterHelper->get('mailer_from_email');
         $systemFromName   = $this->cleanName(
-            $factory->getParameter('mailer_from_name')
+            $coreParamenterHelper->get('mailer_from_email')
         );
         $this->setDefaultFrom($from, [$systemFromEmail => $systemFromName]);
 
-        $this->returnPath = $factory->getParameter('mailer_return_path');
+        $this->returnPath = $coreParamenterHelper->get('mailer_return_path');
 
         // Check if batching is supported by the transport
-        if ('memory' == $this->factory->getParameter('mailer_spool_type') && $this->transport instanceof TokenTransportInterface) {
+        if ('memory' == $coreParamenterHelper->get('mailer_spool_type') && $this->transport instanceof TokenTransportInterface) {
             $this->tokenizationEnabled = true;
-        }
-
-        // Set factory if supported
-        if (method_exists($this->transport, 'setMauticFactory')) {
-            $this->transport->setMauticFactory($factory);
         }
 
         $this->message = $this->getMessageInstance();
@@ -309,14 +392,28 @@ class MailHelper
      */
     public function getSampleMailer($cleanSlate = true)
     {
-        $queueMode = $this->factory->getParameter('mailer_spool_type');
+        $queueMode = $this->coreParamenterHelper->get('mailer_spool_type');
         if ('file' != $queueMode) {
             return $this->getMailer($cleanSlate);
         }
 
-        $transport  = $this->factory->get('swiftmailer.transport.real');
-        $mailer     = new \Swift_Mailer($transport);
-        $mailHelper = new self($this->factory, $mailer, $this->from);
+        $mailer     = new \Swift_Mailer($this->swiftTransport);
+        $mailHelper = new self(
+            $this->modelFactory,
+            $this->mailer,
+            $this->coreParamenterHelper,
+            $this->themeHelper,
+            $this->em,
+            $this->mailbox,
+            $this->templatingHelper,
+            $this->swiftTransport,
+            $this->dispatcher,
+            $this->loggerMautic,
+            $this->router,
+            $this->slotHelper,
+            $this->request,
+            $this->from
+        );
 
         return $mailHelper->getMailer($cleanSlate);
     }
@@ -431,7 +528,7 @@ class MailHelper
 
                 $failures = null;
 
-                if ($this->factory->getParameter('mailer_convert_embed_images')) {
+                if ($this->coreParamenterHelper->get('mailer_convert_embed_images')) {
                     $convertedContent = $this->convertEmbedImages($this->message->getBody());
                     $this->message->setBody($convertedContent);
                 }
@@ -834,7 +931,7 @@ class MailHelper
      */
     public function attachAsset($asset)
     {
-        $model = $this->factory->getModel('asset');
+        $model = $this->modelFactory->getModel('asset');
 
         if (!$asset instanceof Asset) {
             $asset = $model->getEntity($asset);
@@ -845,7 +942,7 @@ class MailHelper
         }
 
         if ($asset->isPublished()) {
-            $asset->setUploadDir($this->factory->getParameter('upload_dir'));
+            $asset->setUploadDir($this->coreParamenterHelper->get('upload_dir'));
             $this->assets[$asset->getId()] = $asset;
         }
     }
@@ -863,7 +960,7 @@ class MailHelper
     public function setTemplate($template, $vars = [], $returnContent = false, $charset = null)
     {
         if (null == $this->templating) {
-            $this->templating = $this->factory->getTemplating();
+            $this->templating = $this->templatingHelper;
         }
 
         $content = $this->templating->renderResponse($template, $vars)->getContent();
@@ -954,7 +1051,7 @@ class MailHelper
      */
     public function setBody($content, $contentType = 'text/html', $charset = null, $ignoreTrackingPixel = false)
     {
-        if (!$ignoreTrackingPixel && $this->factory->getParameter('mailer_append_tracking_pixel')) {
+        if (!$ignoreTrackingPixel && $this->coreParamenterHelper->get('mailer_append_tracking_pixel')) {
             // Append tracking pixel
             $trackingImg = '<img height="1" width="1" src="{tracking_pixel}" alt="" />';
             if (false !== strpos($content, '</body>')) {
@@ -1401,7 +1498,7 @@ class MailHelper
             $template = $email->getTemplate();
             if (empty($slots)) {
                 $template = $email->getTemplate();
-                $slots    = $this->factory->getTheme($template)->getSlots('email');
+                $slots    = $this->themeHelper->getTheme($template)->getSlots('email');
             }
 
             if (isset($slots[$template])) {
@@ -1410,7 +1507,7 @@ class MailHelper
 
             $this->processSlots($slots, $email);
 
-            $logicalName = $this->factory->getHelper('theme')->checkForTwigTemplate(':'.$template.':email.html.php');
+            $logicalName = $this->themeHelper->checkForTwigTemplate(':'.$template.':email.html.php');
 
             $customHtml = $this->setTemplate($logicalName, [
                 'slots'    => $slots,
@@ -1505,7 +1602,7 @@ class MailHelper
     private function getUnsubscribeHeader()
     {
         if ($this->idHash) {
-            $url = $this->factory->getRouter()->generate('mautic_email_unsubscribe', ['idHash' => $this->idHash], UrlGeneratorInterface::ABSOLUTE_URL);
+            $url = $this->router->generate('mautic_email_unsubscribe', ['idHash' => $this->idHash], UrlGeneratorInterface::ABSOLUTE_URL);
 
             return "<$url>";
         }
@@ -1544,7 +1641,7 @@ class MailHelper
 
         // Include the tracking pixel token as it's auto appended to the body
         if ($this->appendTrackingPixel) {
-            $tokens['{tracking_pixel}'] = $this->factory->getRouter()->generate(
+            $tokens['{tracking_pixel}'] = $this->router->generate(
                 'mautic_email_tracker',
                 [
                     'idHash' => $this->idHash,
@@ -1579,9 +1676,8 @@ class MailHelper
             }
         }
 
-        $request = $this->factory->getRequest();
         $parser  = new PlainTextHelper([
-            'base_url' => $request->getSchemeAndHttpHost().$request->getBasePath(),
+            'base_url' => $this->request->getSchemeAndHttpHost().$this->request->getBasePath(),
         ]);
 
         $this->plainText = $parser->setHtml($content)->getText();
@@ -1606,13 +1702,9 @@ class MailHelper
      */
     public function dispatchSendEvent()
     {
-        if (null == $this->dispatcher) {
-            $this->dispatcher = $this->factory->getDispatcher();
-        }
-
         $event = new EmailSendEvent($this);
 
-        $this->dispatcher->dispatch(EmailEvents::EMAIL_ON_SEND, $event);
+        $this->eventDispatcher->dispatch(EmailEvents::EMAIL_ON_SEND, $event);
 
         $this->eventTokens = array_merge($this->eventTokens, $event->getTokens(false));
 
@@ -1657,8 +1749,7 @@ class MailHelper
         $this->errors[] = $errorMessage;
 
         $this->logger->clear();
-
-        $this->factory->getLogger()->log('error', '[MAIL ERROR] '.$error, $exceptionContext);
+        $this->loggerMautic->log('error', '[MAIL ERROR] '.$error, $exceptionContext);
     }
 
     /**
@@ -1718,7 +1809,7 @@ class MailHelper
         // Create a download entry if there is an Asset attachment
         if (!empty($this->assetStats)) {
             /** @var \Mautic\AssetBundle\Model\AssetModel $assetModel */
-            $assetModel = $this->factory->getModel('asset');
+            $assetModel = $this->modelFactory->getModel('asset');
             foreach ($this->assets as $asset) {
                 foreach ($this->assetStats as $stat) {
                     $assetModel->trackDownload(
@@ -1797,14 +1888,14 @@ class MailHelper
         if ($this->email) {
             // Get a Trackable which is channel aware
             /** @var \Mautic\PageBundle\Model\TrackableModel $trackableModel */
-            $trackableModel = $this->factory->getModel('page.trackable');
+            $trackableModel = $this->modelFactory->getModel('page.trackable');
             $trackable      = $trackableModel->getTrackableByUrl($url, 'email', $this->email->getId());
 
             return $trackable->getRedirect();
         }
 
         /** @var \Mautic\PageBundle\Model\RedirectModel $redirectModel */
-        $redirectModel = $this->factory->getModel('page.redirect');
+        $redirectModel = $this->modelFactory->getModel('page.redirect');
 
         return $redirectModel->getRedirectByUrl($url);
     }
@@ -1828,7 +1919,7 @@ class MailHelper
         // Note if a lead
         if (null !== $this->lead) {
             try {
-                $stat->setLead($this->factory->getEntityManager()->getReference('MauticLeadBundle:Lead', $this->lead['id']));
+                $stat->setLead($this->em->getReference('MauticLeadBundle:Lead', $this->lead['id']));
             } catch (ORMException $exception) {
                 // keep IDE happy
             }
@@ -1850,7 +1941,7 @@ class MailHelper
         // Note if sent from a lead list
         if (null !== $listId) {
             try {
-                $stat->setList($this->factory->getEntityManager()->getReference('MauticLeadBundle:LeadList', $listId));
+                $stat->setList($this->em->getReference('MauticLeadBundle:LeadList', $listId));
             } catch (ORMException $exception) {
                 // keep IDE happy
             }
@@ -1865,7 +1956,7 @@ class MailHelper
         $stat->setTokens($this->getTokens());
 
         /** @var \Mautic\EmailBundle\Model\EmailModel $emailModel */
-        $emailModel = $this->factory->getModel('email');
+        $emailModel = $this->modelFactory->getModel('email');
 
         // Save a copy of the email - use email ID if available simply to prevent from having to rehash over and over
         $id = (null !== $this->email) ? $this->email->getId() : md5($this->subject.$this->body['content']);
@@ -1890,7 +1981,7 @@ class MailHelper
 
         if (isset($this->copies[$id])) {
             try {
-                $stat->setStoredCopy($this->factory->getEntityManager()->getReference('MauticEmailBundle:Copy', $this->copies[$id]));
+                $stat->setStoredCopy($this->em->getReference('MauticEmailBundle:Copy', $this->copies[$id]));
             } catch (ORMException $exception) {
                 // keep IDE happy
             }
@@ -1913,11 +2004,8 @@ class MailHelper
      */
     public function isMontoringEnabled($bundleKey, $folderKey)
     {
-        /** @var \Mautic\EmailBundle\MonitoredEmail\Mailbox $mailboxHelper */
-        $mailboxHelper = $this->factory->getHelper('mailbox');
-
-        if ($mailboxHelper->isConfigured($bundleKey, $folderKey)) {
-            return $mailboxHelper->getMailboxSettings();
+        if ($this->mailbox->isConfigured($bundleKey, $folderKey)) {
+            return $this->mailbox->getMailboxSettings();
         }
 
         return false;
@@ -2002,9 +2090,6 @@ class MailHelper
      */
     public function processSlots($slots, $entity)
     {
-        /** @var \Mautic\CoreBundle\Templating\Helper\SlotsHelper $slotsHelper */
-        $slotsHelper = $this->factory->getHelper('template.slots');
-
         $content = $entity->getContent();
 
         foreach ($slots as $slot => $slotConfig) {
@@ -2014,7 +2099,7 @@ class MailHelper
             }
 
             $value = isset($content[$slot]) ? $content[$slot] : '';
-            $slotsHelper->set($slot, $value);
+            $this->slotHelper->set($slot, $value);
         }
     }
 
@@ -2050,13 +2135,13 @@ class MailHelper
     {
         $owner = false;
 
-        if ($this->factory->getParameter('mailer_is_owner') && is_array($contact) && isset($contact['id'])) {
+        if ($this->coreParamenterHelper->get('mailer_is_owner') && is_array($contact) && isset($contact['id'])) {
             if (!isset($contact['owner_id'])) {
                 $contact['owner_id'] = 0;
             } elseif (isset($contact['owner_id'])) {
                 if (isset(self::$leadOwners[$contact['owner_id']])) {
                     $owner = self::$leadOwners[$contact['owner_id']];
-                } elseif ($owner = $this->factory->getModel('lead')->getRepository()->getLeadOwner($contact['owner_id'])) {
+                } elseif ($owner = $this->modelFactory->getModel('lead')->getRepository()->getLeadOwner($contact['owner_id'])) {
                     self::$leadOwners[$owner['id']] = $owner;
                 }
             }
@@ -2089,7 +2174,7 @@ class MailHelper
             return [];
         }
 
-        if (!$systemHeaders = $this->factory->getParameter('mailer_custom_headers', [])) {
+        if (!$systemHeaders = $this->coreParamenterHelper->get('mailer_custom_headers', [])) {
             return [];
         }
 

@@ -11,32 +11,64 @@
 
 namespace Mautic\EmailBundle\Tests\EventListener;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Mautic\CoreBundle\Factory\MauticFactory;
+use Mautic\CoreBundle\Factory\ModelFactory;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CoreBundle\Helper\TemplatingHelper;
+use Mautic\CoreBundle\Helper\ThemeHelper;
+use Mautic\CoreBundle\Templating\Helper\SlotsHelper;
 use Mautic\EmailBundle\Entity\Email;
 use Mautic\EmailBundle\Event\EmailSendEvent;
 use Mautic\EmailBundle\EventListener\TokenSubscriber;
 use Mautic\EmailBundle\Helper\MailHelper;
+use Mautic\EmailBundle\MonitoredEmail\Mailbox;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Helper\PrimaryCompanyHelper;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\RouterInterface;
 
 class TokenSubscriberTest extends \PHPUnit\Framework\TestCase
 {
     public function testDynamicContentCustomTokens()
     {
-        $mockFactory = $this->getMockBuilder(MauticFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $mockFactory          = $this->createMock(ModelFactory::class);
+        $coreParametersHelper = $this->createMock(CoreParametersHelper::class);
+        $themeHelper          = $this->createMock(ThemeHelper::class);
+        $em                   = $this->createMock(EntityManagerInterface::class);
+        $mailbox              = $this->createMock(Mailbox::class);
+        $templateHelper       = $this->createMock(TemplatingHelper::class);
+        $swiftTransport       = $this->createMock(\Swift_Transport::class);
+        $dispatcher           = $this->createMock(EventDispatcher::class);
+        $logger               = $this->createMock(LoggerInterface::class);
+        $router               = $this->createMock(RouterInterface::class);
+        $slotHelper           = $this->createMock(SlotsHelper::class);
+        $request              = $this->createMock(RequestStack::class);
 
-        $swiftMailer = $this->getMockBuilder(\Swift_Mailer::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $swiftMailer = $this->createMock(\Swift_Mailer::class);
 
         $tokens = [
             '{test}' => 'value',
         ];
 
-        $mailHelper = new MailHelper($mockFactory, $swiftMailer);
+        $mailHelper = new MailHelper(
+            $mockFactory,
+            $swiftMailer,
+            $coreParametersHelper,
+            $themeHelper,
+            $em,
+            $mailbox,
+            $templateHelper,
+            $swiftTransport,
+            $dispatcher,
+            $logger,
+            $router,
+            $slotHelper,
+            $request,
+            ['nobody@nowhere.com' => 'No Body']
+        );
         $mailHelper->setTokens($tokens);
 
         $email = new Email();

@@ -648,8 +648,19 @@ return [
             'mautic.helper.mailer' => [
                 'class'     => \Mautic\EmailBundle\Helper\MailHelper::class,
                 'arguments' => [
-                    'mautic.factory',
+                    'mautic.model.factory',
                     'mailer',
+                    'mautic.helper.core_parameters',
+                    'mautic.helper.theme',
+                    '@doctrine.orm.entity_manager',
+                    'mautic.helper.mailbox',
+                    'mautic.helper.templating',
+                    'swiftmailer.transport.real',
+                    'event_dispatcher',
+                    'monolog.logger.mautic',
+                    'router',
+                    'templating.helper.slots',
+                    'request_stack',
                 ],
             ],
             'mautic.helper.plain_text_message' => [

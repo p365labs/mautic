@@ -30,7 +30,6 @@ use Mautic\EmailBundle\Swiftmailer\Message\MauticMessage;
 use Mautic\EmailBundle\Swiftmailer\Transport\TokenTransportInterface;
 use Mautic\LeadBundle\Entity\Lead;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -353,16 +352,16 @@ class MailHelper
             $this->logError($e);
         }
 
-        $systemFromEmail  = $coreParamenterHelper->get('mailer_from_email');
+        $systemFromEmail  = $coreParamenterHelper->get('mailer_from_email', false);
         $systemFromName   = $this->cleanName(
             $coreParamenterHelper->get('mailer_from_email')
         );
         $this->setDefaultFrom($from, [$systemFromEmail => $systemFromName]);
 
-        $this->returnPath = $coreParamenterHelper->get('mailer_return_path');
+        $this->returnPath = $coreParamenterHelper->get('mailer_return_path', false);
 
         // Check if batching is supported by the transport
-        if ('memory' == $coreParamenterHelper->get('mailer_spool_type') && $this->transport instanceof TokenTransportInterface) {
+        if ('memory' == $coreParamenterHelper->get('mailer_spool_type', false) && $this->transport instanceof TokenTransportInterface) {
             $this->tokenizationEnabled = true;
         }
 
@@ -392,7 +391,7 @@ class MailHelper
      */
     public function getSampleMailer($cleanSlate = true)
     {
-        $queueMode = $this->coreParamenterHelper->get('mailer_spool_type');
+        $queueMode = $this->coreParamenterHelper->get('mailer_spool_type', false);
         if ('file' != $queueMode) {
             return $this->getMailer($cleanSlate);
         }
@@ -528,7 +527,7 @@ class MailHelper
 
                 $failures = null;
 
-                if ($this->coreParamenterHelper->get('mailer_convert_embed_images')) {
+                if ($this->coreParamenterHelper->get('mailer_convert_embed_images', false)) {
                     $convertedContent = $this->convertEmbedImages($this->message->getBody());
                     $this->message->setBody($convertedContent);
                 }
@@ -942,7 +941,7 @@ class MailHelper
         }
 
         if ($asset->isPublished()) {
-            $asset->setUploadDir($this->coreParamenterHelper->get('upload_dir'));
+            $asset->setUploadDir($this->coreParamenterHelper->get('upload_dir', false));
             $this->assets[$asset->getId()] = $asset;
         }
     }
@@ -1051,7 +1050,7 @@ class MailHelper
      */
     public function setBody($content, $contentType = 'text/html', $charset = null, $ignoreTrackingPixel = false)
     {
-        if (!$ignoreTrackingPixel && $this->coreParamenterHelper->get('mailer_append_tracking_pixel')) {
+        if (!$ignoreTrackingPixel && $this->coreParamenterHelper->get('mailer_append_tracking_pixel', false)) {
             // Append tracking pixel
             $trackingImg = '<img height="1" width="1" src="{tracking_pixel}" alt="" />';
             if (false !== strpos($content, '</body>')) {
@@ -2135,7 +2134,7 @@ class MailHelper
     {
         $owner = false;
 
-        if ($this->coreParamenterHelper->get('mailer_is_owner') && is_array($contact) && isset($contact['id'])) {
+        if ($this->coreParamenterHelper->get('mailer_is_owner', false) && is_array($contact) && isset($contact['id'])) {
             if (!isset($contact['owner_id'])) {
                 $contact['owner_id'] = 0;
             } elseif (isset($contact['owner_id'])) {

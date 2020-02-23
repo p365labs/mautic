@@ -236,37 +236,36 @@ class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
         $transport = new BatchTransport(false, 1);
         $mailer    = new \Swift_Mailer($transport);
 
-        // Mock factory to ensure that queue mode is handled until MailHelper is refactored completely away from MauticFactory
-        $factoryMock = $this->getMockBuilder(MauticFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getParameter')
-            ->willReturnCallback(
-                function ($param) {
-                    switch ($param) {
-                        case 'mailer_spool_type':
-                            return 'memory';
-                        default:
-                            return '';
-                    }
-                }
-            );
-        $factoryMock->method('getLogger')
-            ->willReturn(
-                new NullLogger()
-            );
-        $factoryMock->method('getDispatcher')
-            ->willReturn(
-                new EventDispatcher()
-            );
-        $routerMock = $this->getMockBuilder(Router::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getRouter')
-            ->willReturn($routerMock);
+        $modelFactory         = $this->createMock(ModelFactory::class);
+        $coreParametersHelper = $this->createMock(CoreParametersHelper::class);
+        $themeHelper          = $this->createMock(ThemeHelper::class);
+        $em                   = $this->createMock(EntityManagerInterface::class);
+        $mailbox              = $this->createMock(Mailbox::class);
+        $templatingHelper     = $this->createMock(TemplatingHelper::class);
+        $swiftTransport       = $this->createMock(\Swift_Transport::class);
+        $dispatcher           = $this->createMock(EventDispatcher::class);
+        $logger               = $this->createMock(LoggerInterface::class);
+        $router               = $this->createMock(RouterInterface::class);
+        $slotHelper           = $this->createMock(SlotsHelper::class);
+        $request              = $this->createMock(RequestStack::class);
+        $mailer               = new \Swift_Mailer(new BatchTransport());
 
         $mailHelper = $this->getMockBuilder(MailHelper::class)
-            ->setConstructorArgs([$factoryMock, $mailer])
+            ->setConstructorArgs([
+                $modelFactory,
+                $coreParametersHelper,
+                $themeHelper,
+                $em,
+                $mailbox,
+                $templatingHelper,
+                $swiftTransport,
+                $dispatcher,
+                $logger,
+                $router,
+                $slotHelper,
+                $request,
+                $mailer,
+            ])
             ->setMethods(['createEmailStat'])
             ->getMock();
 
@@ -362,71 +361,37 @@ class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
         $transport = new BatchTransport(false, 1);
         $mailer    = new \Swift_Mailer($transport);
 
-        // Mock factory to ensure that queue mode is handled until MailHelper is refactored completely away from MauticFactory
-        $factoryMock = $this->getMockBuilder(MauticFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getParameter')
-            ->willReturnCallback(
-                function ($param) {
-                    switch ($param) {
-                        case 'mailer_spool_type':
-                            return 'memory';
-                        default:
-                            return '';
-                    }
-                }
-            );
-        $factoryMock->method('getLogger')
-            ->willReturn(
-                new NullLogger()
-            );
-
-        $mockEm = $this->getMockBuilder(EntityManager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getEntityManager')
-            ->willReturn($mockEm);
-
-        $mockDispatcher = $this->getMockBuilder(EventDispatcher::class)
-            ->getMock();
-        $mockDispatcher->method('dispatch')
-            ->willReturnCallback(
-                function ($eventName, EmailSendEvent $event) {
-                    $lead = $event->getLead();
-
-                    $tokens = [];
-                    foreach ($lead as $field => $value) {
-                        $tokens["{contactfield=$field}"] = $value;
-                    }
-                    $tokens['{hash}'] = $event->getIdHash();
-
-                    $event->addTokens($tokens);
-                }
-            );
-        $factoryMock->method('getDispatcher')
-            ->willReturn($mockDispatcher);
-        $routerMock = $this->getMockBuilder(Router::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getRouter')
-            ->willReturn($routerMock);
-
-        $copyRepoMock = $this->getMockBuilder(CopyRepository::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $emailModelMock = $this->getMockBuilder(EmailModel::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $emailModelMock->method('getCopyRepository')
-            ->willReturn($copyRepoMock);
-
-        $factoryMock->method('getModel')
-            ->willReturn($emailModelMock);
+        $modelFactory         = $this->createMock(ModelFactory::class);
+        $coreParametersHelper = $this->createMock(CoreParametersHelper::class);
+        $themeHelper          = $this->createMock(ThemeHelper::class);
+        $em                   = $this->createMock(EntityManagerInterface::class);
+        $mailbox              = $this->createMock(Mailbox::class);
+        $templatingHelper     = $this->createMock(TemplatingHelper::class);
+        $swiftTransport       = $this->createMock(\Swift_Transport::class);
+        $dispatcher           = $this->createMock(EventDispatcher::class);
+        $logger               = $this->createMock(LoggerInterface::class);
+        $router               = $this->createMock(RouterInterface::class);
+        $slotHelper           = $this->createMock(SlotsHelper::class);
+        $request              = $this->createMock(RequestStack::class);
+        $mailer               = new \Swift_Mailer(new BatchTransport());
 
         $mailHelper = $this->getMockBuilder(MailHelper::class)
-            ->setConstructorArgs([$factoryMock, $mailer])
-            ->setMethods(null)
+            ->setConstructorArgs([
+                $modelFactory,
+                $coreParametersHelper,
+                $themeHelper,
+                $em,
+                $mailbox,
+                $templatingHelper,
+                $swiftTransport,
+                $dispatcher,
+                $logger,
+                $router,
+                $slotHelper,
+                $request,
+                $mailer,
+            ])
+            ->setMethods(['createEmailStat'])
             ->getMock();
 
         // Enable queueing
@@ -498,37 +463,36 @@ class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
         $transport = new BatchTransport(false, 1);
         $mailer    = new \Swift_Mailer($transport);
 
-        // Mock factory to ensure that queue mode is handled until MailHelper is refactored completely away from MauticFactory
-        $factoryMock = $this->getMockBuilder(MauticFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getParameter')
-            ->willReturnCallback(
-                function ($param) {
-                    switch ($param) {
-                        case 'mailer_spool_type':
-                            return 'memory';
-                        default:
-                            return '';
-                    }
-                }
-            );
-        $factoryMock->method('getLogger')
-            ->willReturn(
-                new NullLogger()
-            );
-        $factoryMock->method('getDispatcher')
-            ->willReturn(
-                new EventDispatcher()
-            );
-        $routerMock = $this->getMockBuilder(Router::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getRouter')
-            ->willReturn($routerMock);
+        $modelFactory         = $this->createMock(ModelFactory::class);
+        $coreParametersHelper = $this->createMock(CoreParametersHelper::class);
+        $themeHelper          = $this->createMock(ThemeHelper::class);
+        $em                   = $this->createMock(EntityManagerInterface::class);
+        $mailbox              = $this->createMock(Mailbox::class);
+        $templatingHelper     = $this->createMock(TemplatingHelper::class);
+        $swiftTransport       = $this->createMock(\Swift_Transport::class);
+        $dispatcher           = $this->createMock(EventDispatcher::class);
+        $logger               = $this->createMock(LoggerInterface::class);
+        $router               = $this->createMock(RouterInterface::class);
+        $slotHelper           = $this->createMock(SlotsHelper::class);
+        $request              = $this->createMock(RequestStack::class);
+        $mailer               = new \Swift_Mailer(new BatchTransport());
 
         $mailHelper = $this->getMockBuilder(MailHelper::class)
-            ->setConstructorArgs([$factoryMock, $mailer])
+            ->setConstructorArgs([
+                $modelFactory,
+                $coreParametersHelper,
+                $themeHelper,
+                $em,
+                $mailbox,
+                $templatingHelper,
+                $swiftTransport,
+                $dispatcher,
+                $logger,
+                $router,
+                $slotHelper,
+                $request,
+                $mailer,
+            ])
             ->setMethods(['createEmailStat'])
             ->getMock();
 

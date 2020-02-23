@@ -30,7 +30,7 @@ use Mautic\EmailBundle\Swiftmailer\Message\MauticMessage;
 use Mautic\EmailBundle\Swiftmailer\Transport\TokenTransportInterface;
 use Mautic\LeadBundle\Entity\Lead;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -289,7 +289,7 @@ class MailHelper
     private $swiftTransport;
 
     /**
-     * @var EventDispatcher
+     * @var EventDispatcherInterface
      */
     private $eventDispatcher;
 
@@ -323,7 +323,7 @@ class MailHelper
         Mailbox $mailbox,
         TemplatingHelper $templatingHelper,
         \Swift_Transport $swiftTransport,
-        EventDispatcher $eventDispatcher,
+        EventDispatcherInterface $eventDispatcher,
         LoggerInterface $loggerMautic,
         RouterInterface $router,
         SlotsHelper $slotHelper,

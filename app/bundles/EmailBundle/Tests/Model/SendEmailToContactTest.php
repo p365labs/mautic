@@ -12,7 +12,13 @@
 namespace Mautic\EmailBundle\Tests\Model;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Mautic\CoreBundle\Factory\MauticFactory;
+use Mautic\CoreBundle\Factory\ModelFactory;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CoreBundle\Helper\TemplatingHelper;
+use Mautic\CoreBundle\Helper\ThemeHelper;
+use Mautic\CoreBundle\Templating\Helper\SlotsHelper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\EmailBundle\Entity\CopyRepository;
 use Mautic\EmailBundle\Entity\Email;
@@ -23,14 +29,18 @@ use Mautic\EmailBundle\Exception\FailedToSendToContactException;
 use Mautic\EmailBundle\Helper\MailHelper;
 use Mautic\EmailBundle\Model\EmailModel;
 use Mautic\EmailBundle\Model\SendEmailToContact;
+use Mautic\EmailBundle\MonitoredEmail\Mailbox;
 use Mautic\EmailBundle\Stat\StatHelper;
 use Mautic\EmailBundle\Swiftmailer\Exception\BatchQueueMaxException;
 use Mautic\EmailBundle\Tests\Helper\Transport\BatchTransport;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\DoNotContact;
+use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Router;
+use Symfony\Component\Routing\RouterInterface;
 
 class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
 {
@@ -625,37 +635,36 @@ class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
         $transport = new BatchTransport(true, 1);
         $mailer    = new \Swift_Mailer($transport);
 
-        // Mock factory to ensure that queue mode is handled until MailHelper is refactored completely away from MauticFactory
-        $factoryMock = $this->getMockBuilder(MauticFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getParameter')
-            ->willReturnCallback(
-                function ($param) {
-                    switch ($param) {
-                        case 'mailer_spool_type':
-                            return 'memory';
-                        default:
-                            return '';
-                    }
-                }
-            );
-        $factoryMock->method('getLogger')
-            ->willReturn(
-                new NullLogger()
-            );
-        $factoryMock->method('getDispatcher')
-            ->willReturn(
-                new EventDispatcher()
-            );
-        $routerMock = $this->getMockBuilder(Router::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $factoryMock->method('getRouter')
-            ->willReturn($routerMock);
+        $modelFactory         = $this->createMock(ModelFactory::class);
+        $coreParametersHelper = $this->createMock(CoreParametersHelper::class);
+        $themeHelper          = $this->createMock(ThemeHelper::class);
+        $em                   = $this->createMock(EntityManagerInterface::class);
+        $mailbox              = $this->createMock(Mailbox::class);
+        $templatingHelper     = $this->createMock(TemplatingHelper::class);
+        $swiftTransport       = $this->createMock(\Swift_Transport::class);
+        $dispatcher           = $this->createMock(EventDispatcher::class);
+        $logger               = $this->createMock(LoggerInterface::class);
+        $router               = $this->createMock(RouterInterface::class);
+        $slotHelper           = $this->createMock(SlotsHelper::class);
+        $request              = $this->createMock(RequestStack::class);
+        $mailer               = new \Swift_Mailer(new BatchTransport());
 
         $mailHelper = $this->getMockBuilder(MailHelper::class)
-            ->setConstructorArgs([$factoryMock, $mailer])
+            ->setConstructorArgs([
+                $modelFactory,
+                $coreParametersHelper,
+                $themeHelper,
+                $em,
+                $mailbox,
+                $templatingHelper,
+                $swiftTransport,
+                $dispatcher,
+                $logger,
+                $router,
+                $slotHelper,
+                $request,
+                $mailer,
+            ])
             ->setMethods(['createEmailStat'])
             ->getMock();
 

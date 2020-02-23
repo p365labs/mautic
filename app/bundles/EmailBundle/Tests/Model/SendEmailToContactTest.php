@@ -253,18 +253,18 @@ class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
         $mailHelper = $this->getMockBuilder(MailHelper::class)
             ->setConstructorArgs([
                 $modelFactory,
+                $mailer,
                 $coreParametersHelper,
                 $themeHelper,
                 $em,
                 $mailbox,
                 $templatingHelper,
-                $swiftTransport,
+                $transport,
                 $dispatcher,
                 $logger,
                 $router,
                 $slotHelper,
                 $request,
-                $mailer,
             ])
             ->setMethods(['createEmailStat'])
             ->getMock();
@@ -378,18 +378,18 @@ class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
         $mailHelper = $this->getMockBuilder(MailHelper::class)
             ->setConstructorArgs([
                 $modelFactory,
+                $mailer,
                 $coreParametersHelper,
                 $themeHelper,
                 $em,
                 $mailbox,
                 $templatingHelper,
-                $swiftTransport,
+                $transport,
                 $dispatcher,
                 $logger,
                 $router,
                 $slotHelper,
                 $request,
-                $mailer,
             ])
             ->setMethods(['createEmailStat'])
             ->getMock();
@@ -480,18 +480,18 @@ class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
         $mailHelper = $this->getMockBuilder(MailHelper::class)
             ->setConstructorArgs([
                 $modelFactory,
+                $mailer,
                 $coreParametersHelper,
                 $themeHelper,
                 $em,
                 $mailbox,
                 $templatingHelper,
-                $swiftTransport,
+                $transport,
                 $dispatcher,
                 $logger,
                 $router,
                 $slotHelper,
                 $request,
-                $mailer,
             ])
             ->setMethods(['createEmailStat'])
             ->getMock();
@@ -616,18 +616,18 @@ class SendEmailToContactTest extends \PHPUnit\Framework\TestCase
         $mailHelper = $this->getMockBuilder(MailHelper::class)
             ->setConstructorArgs([
                 $modelFactory,
+                $mailer,
                 $coreParametersHelper,
                 $themeHelper,
                 $em,
                 $mailbox,
                 $templatingHelper,
-                $swiftTransport,
+                $transport,
                 $dispatcher,
                 $logger,
                 $router,
                 $slotHelper,
                 $request,
-                $mailer,
             ])
             ->setMethods(['createEmailStat'])
             ->getMock();

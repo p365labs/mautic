@@ -12,7 +12,6 @@
 namespace Mautic\EmailBundle\Tests\Helper;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Factory\ModelFactory;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
@@ -918,10 +917,7 @@ class MailHelperTest extends \PHPUnit\Framework\TestCase
 
     public function testArrayOfAddressesAreRemappedIntoEmailToNameKeyValuePair()
     {
-        $mockFactory = $this->getMockBuilder(MauticFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockFactory->method('getParameter')
+        $this->modelFactory->method('getParameter')
             ->will(
                 $this->returnValueMap(
                     [
@@ -935,7 +931,7 @@ class MailHelperTest extends \PHPUnit\Framework\TestCase
 
         $mailer = new MailHelper(
             $this->modelFactory,
-            $this->mailer,
+            $swiftMailer,
             $this->coreParametersHelper,
             $this->themeHelper,
             $this->em,

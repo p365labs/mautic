@@ -2346,43 +2346,6 @@ class LeadModel extends FormModel
     }
 
     /**
-     * @deprecated 2.12.0 to be removed in 3.0; use Mautic\LeadBundle\Model\DoNotContact instead
-     *
-     * @param string $channel
-     *
-     * @return int
-     *
-     * @see \Mautic\LeadBundle\Entity\DoNotContact This method can return boolean false, so be
-     *                                             sure to always compare the return value against
-     *                                             the class constants of DoNotContact
-     */
-    public function isContactable(Lead $lead, $channel)
-    {
-        if (is_array($channel)) {
-            $channel = key($channel);
-        }
-
-        /** @var \Mautic\LeadBundle\Entity\DoNotContactRepository $dncRepo */
-        $dncRepo = $this->em->getRepository('MauticLeadBundle:DoNotContact');
-
-        /** @var \Mautic\LeadBundle\Entity\DoNotContact[] $entries */
-        $dncEntries = $dncRepo->getEntriesByLeadAndChannel($lead, $channel);
-
-        // If the lead has no entries in the DNC table, we're good to go
-        if (empty($dncEntries)) {
-            return DNC::IS_CONTACTABLE;
-        }
-
-        foreach ($dncEntries as $dnc) {
-            if (DNC::IS_CONTACTABLE !== $dnc->getReason()) {
-                return $dnc->getReason();
-            }
-        }
-
-        return DNC::IS_CONTACTABLE;
-    }
-
-    /**
      * Merge two leads; if a conflict of data occurs, the newest lead will get precedence.
      *
      * @deprecated 2.13.0; to be removed in 3.0. Use \Mautic\LeadBundle\Deduplicate\ContactMerger instead

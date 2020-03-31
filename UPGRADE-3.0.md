@@ -279,6 +279,7 @@ public function onConfigGenerate(ConfigBuilderEvent $event)
 ### LeadBundle
 
 *   LeadModel Deprecated methods removed:
+    * remove LeadModel::isContactable as deprecated
     * remove LeadModel::getContactChannels: as using isContactable it could lead to circular reference
     * remove LeadModel::getDoNotContactChannels: isContactable is deprecated and this method was never used
     * remove LeadModel::flattenFields use Lead::getProfileFields

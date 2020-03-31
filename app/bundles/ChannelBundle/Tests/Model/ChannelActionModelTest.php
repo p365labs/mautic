@@ -85,9 +85,6 @@ class ChannelActionModelTest extends \PHPUnit\Framework\TestCase
             ->with($this->contactMock6)
             ->willReturn(false);
 
-        $this->contactModelMock->expects($this->never())
-            ->method('getContactChannels');
-
         $this->actionModel->update($contacts, [], [], '');
     }
 
@@ -105,12 +102,6 @@ class ChannelActionModelTest extends \PHPUnit\Framework\TestCase
             ->method('canEditContact')
             ->with($this->contactMock5)
             ->willReturn(true);
-
-        // Contact is already subscribed to the SMS channel but not to email
-        $this->contactModelMock->expects($this->at(2))
-            ->method('getContactChannels')
-            ->with($this->contactMock5)
-            ->willReturn(['sms' => 'sms']);
 
         $this->doNotContactMock->expects($this->once())
             ->method('isContactable')
@@ -146,12 +137,6 @@ class ChannelActionModelTest extends \PHPUnit\Framework\TestCase
             ->with($this->contactMock5)
             ->willReturn(true);
 
-        // Contact is already subscribed to the SMS channel but not to email
-        $this->contactModelMock->expects($this->at(2))
-            ->method('getContactChannels')
-            ->with($this->contactMock5)
-            ->willReturn(['sms' => 'sms']);
-
         $this->doNotContactMock->expects($this->once())
             ->method('isContactable')
             ->with($this->contactMock5, 'email')
@@ -184,11 +169,6 @@ class ChannelActionModelTest extends \PHPUnit\Framework\TestCase
             ->method('canEditContact')
             ->with($this->contactMock5)
             ->willReturn(true);
-
-        $this->contactModelMock->expects($this->at(2))
-            ->method('getContactChannels')
-            ->with($this->contactMock5)
-            ->willReturn(['sms' => 'sms']);
 
         $this->doNotContactMock->expects($this->never())
             ->method('isContactable');

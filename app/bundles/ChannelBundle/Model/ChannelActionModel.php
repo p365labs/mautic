@@ -67,7 +67,13 @@ class ChannelActionModel
      */
     private function addChannels(Lead $contact, array $subscribedChannels)
     {
-        $contactChannels = $this->contactModel->getContactChannels($contact);
+        $contactChannels = $this->contactModel->getPreferenceChannels();
+        $channels        = [];
+        foreach ($contactChannels as $channel) {
+            if (DNC::IS_CONTACTABLE === $this->doNotContact->isContactable($contact, $channel)) {
+                $channels[$channel] = $channel;
+            }
+        }
 
         foreach ($subscribedChannels as $subscribedChannel) {
             if (!array_key_exists($subscribedChannel, $contactChannels)) {

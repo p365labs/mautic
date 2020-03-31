@@ -2196,25 +2196,6 @@ class LeadModel extends FormModel
     }
 
     /**
-     * Get contact channels.
-     *
-     * @return array
-     */
-    public function getDoNotContactChannels(Lead $lead)
-    {
-        $allChannels = $this->getPreferenceChannels();
-
-        $channels = [];
-        foreach ($allChannels as $channel) {
-            if (DNC::IS_CONTACTABLE !== $this->isContactable($lead, $channel)) {
-                $channels[$channel] = $channel;
-            }
-        }
-
-        return $channels;
-    }
-
-    /**
      * @return array
      */
     public function getPreferenceChannels()

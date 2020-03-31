@@ -279,6 +279,7 @@ public function onConfigGenerate(ConfigBuilderEvent $event)
 ### LeadBundle
 
 *   LeadModel Deprecated methods removed:
+    * remove LeadModel::getDoNotContactChannels: isContactable is deprecated and this method was never used
     * remove LeadModel::flattenFields use Lead::getProfileFields
     * remove LeadModel::getFrequencyRule and use LeadModel::getFrequencyRules
     * remove LeadModel::getAllChannels() use mautic.channel.helper.channel_list serviceremove LeadModel::getAllChannels() use mautic.channel.helper.channel_list service

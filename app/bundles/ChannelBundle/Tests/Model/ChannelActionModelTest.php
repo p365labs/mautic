@@ -91,7 +91,7 @@ class ChannelActionModelTest extends \PHPUnit\Framework\TestCase
     public function testSubscribeContactToEmailChannel()
     {
         $contacts           = [5];
-        $subscribedChannels = ['email', 'sms']; // Subscribe contact to these channels
+        $subscribedChannels = ['email'];
 
         $this->contactModelMock->expects($this->at(0))
             ->method('getLeadsByIds')
@@ -103,7 +103,11 @@ class ChannelActionModelTest extends \PHPUnit\Framework\TestCase
             ->with($this->contactMock5)
             ->willReturn(true);
 
-        $this->doNotContactMock->expects($this->once())
+        $this->contactModelMock->expects($this->at(3))
+            ->method('getPreferenceChannels')
+            ->willReturn(['Email' => 'email']);
+
+        $this->doNotContactMock->expects($this->atMost(2))
             ->method('isContactable')
             ->with($this->contactMock5, 'email')
             ->willReturn(DNC::IS_CONTACTABLE);
@@ -125,7 +129,7 @@ class ChannelActionModelTest extends \PHPUnit\Framework\TestCase
     public function testSubscribeContactWhoUnsubscribedToEmailChannel()
     {
         $contacts           = [5];
-        $subscribedChannels = ['email', 'sms']; // Subscribe contact to these channels
+        $subscribedChannels = ['email']; // Subscribe contact to these channels
 
         $this->contactModelMock->expects($this->at(0))
             ->method('getLeadsByIds')
@@ -136,6 +140,10 @@ class ChannelActionModelTest extends \PHPUnit\Framework\TestCase
             ->method('canEditContact')
             ->with($this->contactMock5)
             ->willReturn(true);
+
+        $this->contactModelMock->expects($this->at(3))
+            ->method('getPreferenceChannels')
+            ->willReturn(['Email' => 'email']);
 
         $this->doNotContactMock->expects($this->once())
             ->method('isContactable')

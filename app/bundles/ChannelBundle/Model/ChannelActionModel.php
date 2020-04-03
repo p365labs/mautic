@@ -62,14 +62,40 @@ class ChannelActionModel
     }
 
     /**
+     * Get contact channels.
+     *
+     * @return array
+     */
+    public function getContactChannels(Lead $lead)
+    {
+        $allChannels = $this->contactModel->getPreferenceChannels();
+        if (null == $allChannels) {
+            $allChannels = [];
+        }
+
+        $channels = [];
+        foreach ($allChannels as $channel) {
+            if (DNC::IS_CONTACTABLE === $this->contactModel->isContactable($lead, $channel)) {
+                $channels[$channel] = $channel;
+            }
+        }
+
+        return $channels;
+    }
+
+    /**
      * Add contact's channels.
      * Only resubscribe if the contact did not opt out themselves.
      */
     private function addChannels(Lead $contact, array $subscribedChannels)
     {
-        $contactChannels = $this->contactModel->getPreferenceChannels();
-        $channels        = [];
-        foreach ($contactChannels as $channel) {
+        $allChannels = $this->contactModel->getPreferenceChannels();
+        if (null == $allChannels) {
+            $allChannels = [];
+        }
+
+        $contactChannels = [];
+        foreach ($allChannels as $channel) {
             if (DNC::IS_CONTACTABLE === $this->doNotContact->isContactable($contact, $channel)) {
                 $channels[$channel] = $channel;
             }

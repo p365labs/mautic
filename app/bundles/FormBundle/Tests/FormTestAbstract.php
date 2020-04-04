@@ -32,6 +32,7 @@ use Mautic\FormBundle\Model\FieldModel;
 use Mautic\FormBundle\Model\FormModel;
 use Mautic\FormBundle\Model\SubmissionModel;
 use Mautic\FormBundle\Validator\UploadFieldValidator;
+use Mautic\LeadBundle\Deduplicate\ContactMerger;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Entity\LeadRepository;
 use Mautic\LeadBundle\Model\CompanyModel;
@@ -147,6 +148,7 @@ class FormTestAbstract extends WebTestCase
         $translator               = $this->createMock(Translator::class);
         $dateHelper               = $this->createMock(DateHelper::class);
         $contactTracker           = $this->createMock(ContactTracker::class);
+        $contactMerger            = $this->createMock(ContactMerger::class);
         $userHelper               = $this->createMock(UserHelper::class);
         $entityManager            = $this->createMock(EntityManager::class);
         $formRepository           = $this->createMock(FormRepository::class);
@@ -229,7 +231,8 @@ class FormTestAbstract extends WebTestCase
             $deviceTrackingService,
             new FieldValueTransformer($this->container->get('router')),
             $dateHelper,
-            $contactTracker
+            $contactTracker,
+            $contactMerger
         );
 
         $submissionModel->setDispatcher($dispatcher);

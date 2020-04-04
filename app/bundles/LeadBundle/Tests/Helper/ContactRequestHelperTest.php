@@ -17,6 +17,7 @@ use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\EmailBundle\Entity\Email;
 use Mautic\EmailBundle\Entity\Stat;
+use Mautic\LeadBundle\Deduplicate\ContactDeduper;
 use Mautic\LeadBundle\Deduplicate\ContactMerger;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Event\ContactIdentificationEvent;
@@ -74,6 +75,11 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
      */
     private $contactMerger;
 
+    /**
+     * @var ContactDeduper
+     */
+    private $contactDeduper;
+
     protected function setUp()
     {
         $this->leadModel            = $this->createMock(LeadModel::class);
@@ -84,6 +90,7 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
         $this->logger               = $this->createMock(Logger::class);
         $this->dispatcher           = $this->createMock(EventDispatcher::class);
         $this->contactMerger        = $this->createMock(ContactMerger::class);
+        $this->contactDeduper       = $this->createMock(ContactDeduper::class);
 
         $this->trackedContact = $this->createMock(Lead::class);
         $this->trackedContact->method('getId')
@@ -118,7 +125,7 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
         $stat = new Stat();
         $stat->setEmail($email);
 
-        $this->leadModel->expects($this->once())
+        $this->contactDeduper->expects($this->once())
             ->method('checkForDuplicateContact')
             ->willReturn([$this->trackedContact, []]);
 
@@ -187,9 +194,9 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
         $queryWithEmail          = $query;
         $queryWithEmail['email'] = 'test@test.com';
 
-        $this->leadModel->expects($this->once())
+        $this->contactDeduper->expects($this->once())
             ->method('checkForDuplicateContact')
-            ->with($queryWithEmail, null, true, true)
+            ->with($queryWithEmail, $this->trackedContact, true, true)
             ->willReturn([$lead, ['email' => 'test@test.com']]);
 
         $helper = $this->getContactRequestHelper();
@@ -219,9 +226,9 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
         $this->trackedContact->method('isNew')
             ->willReturn(true);
 
-        $this->leadModel->expects($this->once())
+        $this->contactDeduper->expects($this->once())
             ->method('checkForDuplicateContact')
-            ->with($query, null, true, true)
+            ->with($query, $this->trackedContact, true, true)
             ->willReturn([$this->trackedContact, []]);
 
         $helper = $this->getContactRequestHelper();
@@ -241,7 +248,8 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
             $this->requestStack,
             $this->logger,
             $this->dispatcher,
-            $this->contactMerger
+            $this->contactMerger,
+            $this->contactDeduper
         );
     }
 }

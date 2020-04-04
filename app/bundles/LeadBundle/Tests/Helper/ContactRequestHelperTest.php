@@ -118,9 +118,6 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
         $stat = new Stat();
         $stat->setEmail($email);
 
-        $this->leadModel->expects($this->never())
-            ->method('mergeLeads');
-
         $this->leadModel->expects($this->once())
             ->method('checkForDuplicateContact')
             ->willReturn([$this->trackedContact, []]);
@@ -149,9 +146,6 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
                     $event->setIdentifiedContact($contact, 'email');
                 }
             );
-
-        $this->leadModel->expects($this->never())
-            ->method('mergeLeads');
 
         $helper       = $this->getContactRequestHelper();
         $foundContact = $helper->getContactFromQuery($query);

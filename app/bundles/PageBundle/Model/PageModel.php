@@ -27,6 +27,7 @@ use Mautic\LeadBundle\DataObject\LeadManipulator;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Entity\UtmTag;
+use Mautic\LeadBundle\Helper\ContactRequestHelper;
 use Mautic\LeadBundle\Helper\IdentifyCompanyHelper;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\FieldModel;
@@ -114,6 +115,11 @@ class PageModel extends FormModel
     private $contactTracker;
 
     /**
+     * @var ContactRequestHelper
+     */
+    private $contactRequestHelper;
+
+    /**
      * PageModel constructor.
      */
     public function __construct(
@@ -126,19 +132,21 @@ class PageModel extends FormModel
         QueueService $queueService,
         CompanyModel $companyModel,
         DeviceTracker $deviceTracker,
-        ContactTracker $contactTracker
+        ContactTracker $contactTracker,
+        ContactRequestHelper $contactRequestHelper
     ) {
-        $this->cookieHelper       = $cookieHelper;
-        $this->ipLookupHelper     = $ipLookupHelper;
-        $this->leadModel          = $leadModel;
-        $this->leadFieldModel     = $leadFieldModel;
-        $this->pageRedirectModel  = $pageRedirectModel;
-        $this->pageTrackableModel = $pageTrackableModel;
-        $this->dateTimeHelper     = new DateTimeHelper();
-        $this->queueService       = $queueService;
-        $this->companyModel       = $companyModel;
-        $this->deviceTracker      = $deviceTracker;
-        $this->contactTracker     = $contactTracker;
+        $this->cookieHelper         = $cookieHelper;
+        $this->ipLookupHelper       = $ipLookupHelper;
+        $this->leadModel            = $leadModel;
+        $this->leadFieldModel       = $leadFieldModel;
+        $this->pageRedirectModel    = $pageRedirectModel;
+        $this->pageTrackableModel   = $pageTrackableModel;
+        $this->dateTimeHelper       = new DateTimeHelper();
+        $this->queueService         = $queueService;
+        $this->companyModel         = $companyModel;
+        $this->deviceTracker        = $deviceTracker;
+        $this->contactTracker       = $contactTracker;
+        $this->contactRequestHelper = $contactRequestHelper;
     }
 
     /**
@@ -460,7 +468,8 @@ class PageModel extends FormModel
 
         // Get lead if required
         if (null == $lead) {
-            $lead = $this->leadModel->getContactFromRequest($query);
+            /** @var Lead $lead */
+            $lead =  $this->contactRequestHelper->getContactFromQuery($query);
 
             // company
             list($company, $leadAdded, $companyEntity) = IdentifyCompanyHelper::identifyLeadsCompany($query, $lead, $this->companyModel);

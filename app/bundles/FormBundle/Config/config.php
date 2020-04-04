@@ -399,6 +399,19 @@ return [
                     'doctrine.orm.entity_manager',
                 ],
             ],
+            'mautic.contact.request.helper' => [
+                'class'     => SubmissionResultLoader::class,
+                'arguments' => [
+                'mautic.lead.model.lead',
+                'mautic.tracker.contact',
+                'mautic.helper.core_parameters',
+                'mautic.helper.ip_lookup',
+                'request_stack',
+                'monolog.logger.mautic',
+                'event_dispatcher',
+                'mautic.lead.merger',
+                ],
+            ],
         ],
         'repositories' => [
             'mautic.form.repository.form' => [

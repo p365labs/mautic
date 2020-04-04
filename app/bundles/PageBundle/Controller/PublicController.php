@@ -15,6 +15,8 @@ use Mautic\CoreBundle\Controller\FormController as CommonFormController;
 use Mautic\CoreBundle\Exception\InvalidDecodedStringException;
 use Mautic\CoreBundle\Helper\TrackingPixelHelper;
 use Mautic\CoreBundle\Helper\UrlHelper;
+use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Helper\ContactRequestHelper;
 use Mautic\LeadBundle\Helper\PrimaryCompanyHelper;
 use Mautic\LeadBundle\Helper\TokenHelper;
 use Mautic\LeadBundle\Model\LeadModel;
@@ -71,11 +73,14 @@ class PublicController extends CommonFormController
             $lead  = null;
             $query = null;
             if (!$userAccess) {
-                /** @var LeadModel $leadModel */
-                $leadModel = $this->getModel('lead');
+                /** @var ContactRequestHelper $contactRequestHelper */
+                $contactRequestHelper = $this->get('mautic.contact.request.helper');
+
                 // Extract the lead from the request so it can be used to determine language if applicable
                 $query = $model->getHitQuery($this->request, $entity);
-                $lead  = $leadModel->getContactFromRequest($query);
+
+                /** @var Lead $lead */
+                $lead =  $contactRequestHelper->getContactFromQuery($query);
             }
 
             // Correct the URL if it doesn't match up
@@ -462,14 +467,15 @@ class PublicController extends CommonFormController
         $ipAddress = $this->container->get('mautic.helper.ip_lookup')->getIpAddress();
         if ($ipAddress->isTrackable()) {
             // Search replace lead fields in the URL
-            /** @var \Mautic\LeadBundle\Model\LeadModel $leadModel */
-            $leadModel = $this->getModel('lead');
+            /** @var ContactRequestHelper $contactRequestHelper */
+            $contactRequestHelper = $this->get('mautic.contact.request.helper');
 
             /** @var PageModel $pageModel */
             $pageModel = $this->getModel('page');
 
             try {
-                $lead = $leadModel->getContactFromRequest(['ct' => $ct]);
+                /** @var Lead $lead */
+                $lead =  $contactRequestHelper->getContactFromQuery(['ct' => $ct]);
                 $pageModel->hitPage($redirect, $this->request, 200, $lead);
             } catch (InvalidDecodedStringException $e) {
                 // Invalid ct value so we must unset it
@@ -479,7 +485,7 @@ class PublicController extends CommonFormController
 
                 $this->request->request->set('ct', '');
                 $this->request->query->set('ct', '');
-                $lead = $leadModel->getContactFromRequest();
+                $lead = $contactRequestHelper->getContactFromQuery([]);
                 $pageModel->hitPage($redirect, $this->request, 200, $lead);
             }
 

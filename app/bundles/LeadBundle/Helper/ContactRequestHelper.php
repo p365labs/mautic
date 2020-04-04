@@ -15,6 +15,7 @@ use Mautic\CoreBundle\Helper\ClickthroughHelper;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\LeadBundle\DataObject\LeadManipulator;
+use Mautic\LeadBundle\Deduplicate\ContactMerger;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Event\ContactIdentificationEvent;
 use Mautic\LeadBundle\Exception\ContactNotFoundException;
@@ -77,6 +78,11 @@ class ContactRequestHelper
      */
     private $publiclyUpdatableFieldValues = [];
 
+    /**
+     * @var ContactMerger
+     */
+    private $contactMerger;
+
     public function __construct(
         LeadModel $leadModel,
         ContactTracker $contactTracker,
@@ -84,7 +90,8 @@ class ContactRequestHelper
         IpLookupHelper $ipLookupHelper,
         RequestStack $requestStack,
         Logger $logger,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        ContactMerger $contactMerger
     ) {
         $this->leadModel            = $leadModel;
         $this->contactTracker       = $contactTracker;
@@ -93,6 +100,7 @@ class ContactRequestHelper
         $this->request              = $requestStack->getCurrentRequest();
         $this->logger               = $logger;
         $this->eventDispatcher      = $eventDispatcher;
+        $this->contactMerger        = $contactMerger;
     }
 
     /**
@@ -248,7 +256,7 @@ class ContactRequestHelper
     private function mergeWithTrackedContact(Lead $foundContact)
     {
         if ($this->trackedContact && $this->trackedContact->getId() && $this->trackedContact->isAnonymous()) {
-            return $this->leadModel->mergeLeads($this->trackedContact, $foundContact, false);
+            return $this->contactMerger->merge($this->trackedContact, $foundContact);
         }
 
         return $foundContact;

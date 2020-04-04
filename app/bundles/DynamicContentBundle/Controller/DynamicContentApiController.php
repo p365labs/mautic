@@ -14,10 +14,12 @@ namespace Mautic\DynamicContentBundle\Controller;
 use Mautic\CoreBundle\Controller\CommonController;
 use Mautic\DynamicContentBundle\Helper\DynamicContentHelper;
 use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Helper\ContactRequestHelper;
 use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\LeadBundle\Tracker\Service\DeviceTrackingService\DeviceTrackingServiceInterface;
 use Mautic\PageBundle\Model\PageModel;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -55,8 +57,12 @@ class DynamicContentApiController extends CommonController
         /** @var PageModel $pageModel */
         $pageModel = $this->getModel('page');
 
+        /** @var ContactRequestHelper $contactRequestHelper */
+        $contactRequestHelper = $this->get('mautic.contact.request.helper');
+
         /** @var Lead $lead */
-        $lead          = $model->getContactFromRequest($pageModel->getHitQuery($this->request));
+        $lead =  $contactRequestHelper->getContactFromQuery($pageModel->getHitQuery($this->request));
+
         $content       = $helper->getDynamicContentForLead($objectAlias, $lead);
         $trackedDevice = $deviceTrackingService->getTrackedDevice();
         $deviceId      = (null === $trackedDevice ? null : $trackedDevice->getTrackingId());

@@ -887,7 +887,9 @@ class LeadModel extends FormModel
     }
 
     /**
-     * Get the contat from request (ct/clickthrough) and handles auto merging of contact data from request parameters.
+     * Get the contact from request (ct/clickthrough) and handles auto merging of contact data from request parameters.
+     *
+     * @deprecated Use ContactRequestHelper::getContactFromQuery
      *
      * @param array $queryFields
      *
@@ -2354,7 +2356,7 @@ class LeadModel extends FormModel
      *
      * @return Lead
      */
-    public function mergeLeads(Lead $lead, Lead $lead2, $autoMode = true)
+    public function mergseLeads(Lead $lead, Lead $lead2, $autoMode = true)
     {
         return $this->legacyLeadModel->mergeLeads($lead, $lead2, $autoMode);
     }

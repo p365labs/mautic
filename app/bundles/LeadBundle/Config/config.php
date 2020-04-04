@@ -775,6 +775,19 @@ return [
                     'mautic.lead.repository.lead',
                 ],
             ],
+            'mautic.contact.request.helper' => [
+                'class'     => \Mautic\LeadBundle\Helper\ContactRequestHelper::class,
+                'arguments' => [
+                    'mautic.lead.model.lead',
+                    'mautic.tracker.contact',
+                    'mautic.helper.core_parameters',
+                    'mautic.helper.ip_lookup',
+                    'request_stack',
+                    'monolog.logger.mautic',
+                    'event_dispatcher',
+                    'mautic.lead.merger',
+                ],
+            ],
             'mautic.lead.helper.primary_company' => [
                 'class'     => \Mautic\LeadBundle\Helper\PrimaryCompanyHelper::class,
                 'arguments' => [

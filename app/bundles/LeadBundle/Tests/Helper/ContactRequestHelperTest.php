@@ -17,6 +17,7 @@ use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\EmailBundle\Entity\Email;
 use Mautic\EmailBundle\Entity\Stat;
+use Mautic\LeadBundle\Deduplicate\ContactMerger;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Event\ContactIdentificationEvent;
 use Mautic\LeadBundle\Helper\ContactRequestHelper;
@@ -68,6 +69,11 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
      */
     private $trackedContact;
 
+    /**
+     * @var ContactMerger
+     */
+    private $contactMerger;
+
     protected function setUp()
     {
         $this->leadModel            = $this->createMock(LeadModel::class);
@@ -77,6 +83,7 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
         $this->requestStack         = $this->createMock(RequestStack::class);
         $this->logger               = $this->createMock(Logger::class);
         $this->dispatcher           = $this->createMock(EventDispatcher::class);
+        $this->contactMerger        = $this->createMock(ContactMerger::class);
 
         $this->trackedContact = $this->createMock(Lead::class);
         $this->trackedContact->method('getId')
@@ -239,7 +246,8 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
             $this->ipLookupHelper,
             $this->requestStack,
             $this->logger,
-            $this->dispatcher
+            $this->dispatcher,
+            $this->contactMerger
         );
     }
 }

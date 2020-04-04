@@ -2329,7 +2329,7 @@ class LeadModel extends FormModel
      *
      * @return Lead
      */
-    public function mergseLeads(Lead $lead, Lead $lead2, $autoMode = true)
+    public function mergeLeads(Lead $lead, Lead $lead2, $autoMode = true)
     {
         return $this->legacyLeadModel->mergeLeads($lead, $lead2, $autoMode);
     }

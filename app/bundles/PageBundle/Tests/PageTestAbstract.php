@@ -18,6 +18,7 @@ use Mautic\CoreBundle\Helper\UrlHelper;
 use Mautic\CoreBundle\Helper\UserHelper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Helper\ContactRequestHelper;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\FieldModel;
 use Mautic\LeadBundle\Model\LeadModel;
@@ -113,7 +114,8 @@ class PageTestAbstract extends WebTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $contactTracker = $this->createMock(ContactTracker::class);
+        $contactTracker       = $this->createMock(ContactTracker::class);
+        $contactRequestHelper = $this->createMock(ContactRequestHelper::class);
 
         $contactTracker->expects($this
             ->any())
@@ -153,7 +155,8 @@ class PageTestAbstract extends WebTestCase
             $queueService,
             $companyModel,
             $deviceTrackerMock,
-            $contactTracker
+            $contactTracker,
+            $contactRequestHelper
         );
 
         $pageModel->setDispatcher($dispatcher);

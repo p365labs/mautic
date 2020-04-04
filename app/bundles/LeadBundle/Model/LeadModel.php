@@ -887,33 +887,6 @@ class LeadModel extends FormModel
     }
 
     /**
-     * Get the contact from request (ct/clickthrough) and handles auto merging of contact data from request parameters.
-     *
-     * @deprecated Use ContactRequestHelper::getContactFromQuery
-     *
-     * @param array $queryFields
-     *
-     * @return array|Lead|null
-     */
-    public function getContactFromRequest($queryFields = [])
-    {
-        // @todo Instantiate here until we can remove circular dependency on LeadModel in order to make it a service
-        $requestStack = new RequestStack();
-        $requestStack->push($this->request);
-        $contactRequestHelper = new ContactRequestHelper(
-            $this,
-            $this->contactTracker,
-            $this->coreParametersHelper,
-            $this->ipLookupHelper,
-            $requestStack,
-            $this->logger,
-            $this->dispatcher
-        );
-
-        return $contactRequestHelper->getContactFromQuery($queryFields);
-    }
-
-    /**
      * @param bool $returnWithQueryFields
      *
      * @return array|Lead

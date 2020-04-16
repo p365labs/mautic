@@ -51,7 +51,6 @@ use Mautic\LeadBundle\Event\DoNotContactRemoveEvent;
 use Mautic\LeadBundle\Event\LeadEvent;
 use Mautic\LeadBundle\Event\LeadTimelineEvent;
 use Mautic\LeadBundle\Form\Type\LeadType;
-use Mautic\LeadBundle\Helper\ContactRequestHelper;
 use Mautic\LeadBundle\Helper\IdentifyCompanyHelper;
 use Mautic\LeadBundle\LeadEvents;
 use Mautic\LeadBundle\Tracker\ContactTracker;

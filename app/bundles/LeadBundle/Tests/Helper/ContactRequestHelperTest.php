@@ -248,8 +248,7 @@ class ContactRequestHelperTest extends \PHPUnit\Framework\TestCase
             $this->requestStack,
             $this->logger,
             $this->dispatcher,
-            $this->contactMerger,
-            $this->contactDeduper
+            $this->contactMerger
         );
     }
 }
